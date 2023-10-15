@@ -1,4 +1,4 @@
-package input
+package runtime
 
 import (
 	"fmt"
@@ -8,10 +8,9 @@ import (
 func RunFile(filePath string) {
 	bytes, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Print(RED)
-		fmt.Printf("Invalid file path: %s\n", filePath)
+		printError(fmt.Sprintf("Invalid file path: %s\n", filePath))
 		os.Exit(1)
 	}
 
-	fmt.Print(string(bytes))
+	run(string(bytes))
 }

@@ -1,4 +1,4 @@
-package input
+package runtime
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ func RunPrompt() {
 	fmt.Println("Lox Shell v0.0")
 	fmt.Print(BLUE)
 	fmt.Println("Type 'exit' to quit.")
-	fmt.Print(RESET)
+	fmt.Print(RESET_COLOR)
 	fmt.Println()
 
 	promptLoop()
@@ -29,6 +29,6 @@ func promptLoop() {
 		if line == "" {
 			continue
 		}
-		fmt.Println(line)
+		run(line)
 	}
 }
