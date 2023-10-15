@@ -18,6 +18,6 @@ func main() {
 		input.RunFile(args[0])
 		return
 	default:
-		fmt.Println("Usage: lox [script]")
+		fmt.Println("Usage: lox [path/to/script]")
 	}
 }
