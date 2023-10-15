@@ -1,7 +1,17 @@
 package input
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func RunFile(filePath string) {
-	fmt.Printf("Attempt to read from file %s\n", filePath)
+	bytes, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Print(RED)
+		fmt.Printf("Invalid file path: %s\n", filePath)
+		os.Exit(1)
+	}
+
+	fmt.Print(string(bytes))
 }
