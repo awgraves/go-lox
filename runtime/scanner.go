@@ -12,6 +12,7 @@ type Scanner struct {
 	start       int
 	current     int
 	line        int
+	pos         int
 	errReporter ErrorReporter
 }
 
@@ -20,6 +21,7 @@ func newScanner(source string, errReporter ErrorReporter) *Scanner {
 		source:      []rune(source),
 		Tokens:      []*tokens.Token{},
 		line:        1,
+		pos:         0,
 		errReporter: errReporter,
 	}
 }
@@ -111,7 +113,7 @@ func (s *Scanner) scanToken() {
 	case '\t':
 		break
 	case '\n':
-		s.line++
+		s.setNewLine()
 		break
 
 	case '"':
@@ -127,8 +129,13 @@ func (s *Scanner) scanToken() {
 			s.handleIdentifier()
 			break
 		}
-		s.errReporter.AddError(s.line, s.current, fmt.Sprintf("Unexpected character '%v'", string(c)))
+		s.errReporter.AddError(s.line, s.pos, fmt.Sprintf("Unexpected character '%v'", string(c)))
 	}
+}
+
+func (s *Scanner) setNewLine() {
+	s.line++
+	s.pos = 0
 }
 
 func (s *Scanner) handleIdentifier() {
@@ -178,7 +185,7 @@ func (s *Scanner) handleNum() {
 func (s *Scanner) handleString() {
 	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
-			s.line++
+			s.setNewLine()
 		}
 		s.advance()
 	}
@@ -186,7 +193,7 @@ func (s *Scanner) handleString() {
 	if s.isAtEnd() {
 		s.errReporter.AddError(
 			s.line,
-			s.current,
+			s.pos,
 			"Unterminated string.",
 		)
 		return
@@ -228,6 +235,7 @@ func (s *Scanner) matc(exp rune) bool {
 func (s *Scanner) advance() rune {
 	c := s.source[s.current]
 	s.current++
+	s.pos++
 	return c
 }
 
