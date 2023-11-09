@@ -183,6 +183,7 @@ func (s *Scanner) handleNum() {
 }
 
 func (s *Scanner) handleString() {
+	strStartpos := s.pos
 	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			s.setNewLine()
@@ -193,7 +194,7 @@ func (s *Scanner) handleString() {
 	if s.isAtEnd() {
 		s.errReporter.AddError(
 			s.line,
-			s.pos,
+			strStartpos,
 			"Unterminated string.",
 		)
 		return
