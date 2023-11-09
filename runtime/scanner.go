@@ -68,35 +68,35 @@ func (s *Scanner) scanToken() {
 		s.addToken(tokens.STAR)
 		break
 	case '!':
-		if s.matc('=') {
+		if s.match('=') {
 			s.addToken(tokens.BANG_EQUAL)
 			break
 		}
 		s.addToken(tokens.BANG)
 		break
 	case '=':
-		if s.matc('=') {
+		if s.match('=') {
 			s.addToken(tokens.EQUAL_EQUAL)
 			break
 		}
 		s.addToken(tokens.EQUAL)
 		break
 	case '<':
-		if s.matc('=') {
+		if s.match('=') {
 			s.addToken(tokens.LESS_EQUAL)
 			break
 		}
 		s.addToken(tokens.LESS)
 		break
 	case '>':
-		if s.matc('=') {
+		if s.match('=') {
 			s.addToken(tokens.GREATER_EQUAL)
 			break
 		}
 		s.addToken(tokens.GREATER)
 		break
 	case '/':
-		if s.matc('/') {
+		if s.match('/') {
 			// this is a comment line
 			// continue until new line or EOF
 			for s.peek() != '\n' && !s.isAtEnd() {
@@ -184,6 +184,8 @@ func (s *Scanner) handleNum() {
 
 func (s *Scanner) handleString() {
 	strStartpos := s.pos
+	strStartline := s.line
+
 	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			s.setNewLine()
@@ -193,7 +195,7 @@ func (s *Scanner) handleString() {
 
 	if s.isAtEnd() {
 		s.errReporter.AddError(
-			s.line,
+			strStartline,
 			strStartpos,
 			"Unterminated string.",
 		)
@@ -225,7 +227,7 @@ func (s *Scanner) peekNext() rune {
 	return s.source[s.current+1]
 }
 
-func (s *Scanner) matc(exp rune) bool {
+func (s *Scanner) match(exp rune) bool {
 	if s.isAtEnd() || s.source[s.current] != exp {
 		return false
 	}
