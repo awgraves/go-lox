@@ -104,6 +104,11 @@ func (s *Scanner) scanToken() {
 			}
 			break
 		}
+		if s.match('*') {
+			s.advance()
+			s.handleMultiLineComment()
+			break
+		}
 		s.addToken(tokens.SLASH)
 		break
 	case ' ':
@@ -130,6 +135,33 @@ func (s *Scanner) scanToken() {
 			break
 		}
 		s.errReporter.AddError(s.line, s.pos, fmt.Sprintf("Unexpected character '%v'", string(c)))
+	}
+}
+
+func (s *Scanner) handleMultiLineComment() {
+	startLine := s.line
+	startPos := s.pos
+
+	for {
+		if s.isAtEnd() {
+			s.errReporter.AddError(startLine, startPos, "Unterminated multi-line comment")
+			break
+		}
+
+		next := s.peek()
+		if next == '\n' {
+			s.setNewLine()
+			s.advance()
+			continue
+		}
+
+		if next == '*' && s.peekNext() == '/' {
+			s.advance()
+			s.advance()
+			break
+		}
+
+		s.advance()
 	}
 }
 
