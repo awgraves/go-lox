@@ -7,18 +7,20 @@ import (
 )
 
 type Scanner struct {
-	source  []rune
-	Tokens  []*tokens.Token
-	start   int
-	current int
-	line    int
+	source      []rune
+	Tokens      []*tokens.Token
+	start       int
+	current     int
+	line        int
+	errReporter ErrorReporter
 }
 
-func newScanner(source string) *Scanner {
+func newScanner(source string, errReporter ErrorReporter) *Scanner {
 	return &Scanner{
-		source: []rune(source),
-		Tokens: []*tokens.Token{},
-		line:   1,
+		source:      []rune(source),
+		Tokens:      []*tokens.Token{},
+		line:        1,
+		errReporter: errReporter,
 	}
 }
 
@@ -125,7 +127,7 @@ func (s *Scanner) scanToken() {
 			s.handleIdentifier()
 			break
 		}
-		fmt.Println("ERROR")
+		s.errReporter.AddError(s.line, s.current, fmt.Sprintf("Unexpected character '%v'", string(c)))
 	}
 }
 
@@ -182,7 +184,11 @@ func (s *Scanner) handleString() {
 	}
 
 	if s.isAtEnd() {
-		fmt.Println("Unterminated string.")
+		s.errReporter.AddError(
+			s.line,
+			s.current,
+			"Unterminated string.",
+		)
 		return
 	}
 

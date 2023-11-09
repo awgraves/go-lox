@@ -5,8 +5,14 @@ import (
 )
 
 func run(input string) {
-	scanner := newScanner(input)
+	errReporter := newBasicErrorReporter()
+	scanner := newScanner(input, errReporter)
 	scanner.ScanTokens()
+
+	if errReporter.HasError() {
+		printError("Errors found - Would not attempt to execute this code.")
+		errReporter.Report()
+	}
 
 	for _, t := range scanner.Tokens {
 		fmt.Println(t)
