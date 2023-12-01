@@ -74,19 +74,19 @@ var KeywordsMap = map[string]TokenType{
 }
 
 type Token struct {
-	tokenType TokenType
-	lexeme    string
-	lineNum   int
+	TokenType TokenType
+	Lexeme    string
+	LineNum   int
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf(t.lexeme)
+	return fmt.Sprintf(t.Lexeme)
 }
 
-func NewToken(tt TokenType, lexeme string, lineNum int) *Token {
+func NewToken(tt TokenType, Lexeme string, LineNum int) *Token {
 	return &Token{
-		tokenType: tt,
-		lexeme:    lexeme,
-		lineNum:   lineNum,
+		TokenType: tt,
+		Lexeme:    Lexeme,
+		LineNum:   LineNum,
 	}
 }
