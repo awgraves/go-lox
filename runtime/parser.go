@@ -125,7 +125,7 @@ func (p *parser) unary() expressions.Expression {
 
 func (p *parser) primary() expressions.Expression {
 	if p.match(tokens.FALSE) {
-		return expressions.Literal{Value: false}
+		return expressions.Literal{Value: false} // TODO: better solution that interface
 	}
 	if p.match(tokens.TRUE) {
 		return expressions.Literal{Value: true}
