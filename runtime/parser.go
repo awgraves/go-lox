@@ -145,8 +145,8 @@ func (p *parser) primary() expressions.Expression {
 	}
 
 	// TODO: revist this, not totally sure yet
-	next := p.peek()
-	p.errReporter.AddError(next.LineNum, 0, fmt.Sprintf("unknown primary expression: %s", next.Lexeme))
+	curr := p.peek()
+	p.errReporter.AddError(curr.LineNum, 0, fmt.Sprintf("unknown primary expression: %s", curr.Lexeme))
 	p.synchronize()
 
 	// important to tell error reporter and avoid executing the expression tree.
@@ -161,9 +161,10 @@ func (p *parser) consume(t tokens.TokenType, message string) {
 	}
 
 	// err handling begins
-	next := p.peek()
+	curr := p.peek()
 
-	p.errReporter.AddError(next.LineNum, 0, message)
+	// TODO: at char count number
+	p.errReporter.AddError(curr.LineNum, 0, message)
 
 	p.synchronize()
 }
@@ -176,10 +177,10 @@ func (p *parser) synchronize() {
 			return
 		}
 
-		next := p.peek()
+		curr := p.peek()
 
 		for _, t := range []tokens.TokenType{tokens.CLASS, tokens.FOR, tokens.FUN, tokens.IF, tokens.PRINT, tokens.RETURN, tokens.VAR, tokens.WHILE} {
-			if t == next.TokenType {
+			if t == curr.TokenType {
 				return
 			}
 		}
