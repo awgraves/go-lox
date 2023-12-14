@@ -4,28 +4,25 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/awgraves/go-lox/expressions"
 	"github.com/awgraves/go-lox/runtime"
-	"github.com/awgraves/go-lox/tokens"
 )
 
 func main() {
 	args := os.Args[1:]
 
 	// TMP testing purposes
-	astPrinter := expressions.AstPrinter{}
+	//astPrinter := expressions.AstPrinter{}
 
-	expr := expressions.Binary{
-		Left: expressions.Unary{
-			Operator: *tokens.NewToken(tokens.MINUS, "-", 0),
-			Right:    expressions.Literal{Value: 123},
-		},
-		Operator: *tokens.NewToken(tokens.STAR, "*", 0),
-		Right: expressions.Grouping{
-			Expression: expressions.Literal{Value: 45.67},
-		},
-	}
-	fmt.Println(astPrinter.Print(expr))
+	//expr := expressions.Binary{
+	//	Left: expressions.Unary{
+	//		Operator: *tokens.NewToken(tokens.MINUS, "-", 0),
+	//		Right:    expressions.Literal{Value: 123},
+	//	},
+	//	Operator: *tokens.NewToken(tokens.STAR, "*", 0),
+	//	Right: expressions.Grouping{
+	//		Expression: expressions.Literal{Value: 45.67},
+	//	},
+	//}
 
 	switch len(args) {
 	case 0:

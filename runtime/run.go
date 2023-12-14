@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"github.com/awgraves/go-lox/expressions"
 )
 
 func RunFile(filePath string) {
@@ -54,7 +56,16 @@ func run(input string) {
 		return
 	}
 
-	for _, t := range scanner.Tokens {
-		fmt.Println(t)
+	parser := newParser(scanner.Tokens, errReporter)
+
+	expression := parser.parse()
+
+	if errReporter.HasError() {
+		printError("Errors found - runtime would not attempt to execute this code.")
+		errReporter.Report()
+		return
 	}
+
+	astPrinter := expressions.AstPrinter{}
+	fmt.Println(astPrinter.Print(expression))
 }
