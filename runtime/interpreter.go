@@ -10,20 +10,24 @@ import (
 )
 
 type interpreter struct {
+	errReporter ErrorReporter
 }
 
-func newIntepreter() *interpreter {
-	return &interpreter{}
+func newIntepreter(errReporter ErrorReporter) *interpreter {
+	return &interpreter{
+		errReporter: errReporter,
+	}
 }
 
-func (i *interpreter) interpret(exp expressions.Expression) {
+func (i *interpreter) interpret(exp expressions.Expression) string {
 	val, err := i.evaluate(exp)
 	if err != nil {
-		panic(err)
+		// TODO: make this accurate
+		i.errReporter.AddError(0, 0, err.Error())
+		return ""
 	}
-	fmt.Print(GREEN)
-	fmt.Println(stringify(val))
-	fmt.Print(RESET_COLOR)
+
+	return stringify(val)
 }
 
 func stringify(v interface{}) string {
@@ -115,13 +119,24 @@ func (i *interpreter) VisitBinary(exp expressions.Binary) (interface{}, error) {
 
 	switch exp.Operator.TokenType {
 	case tokens.MINUS:
-		return left.(float64) - right.(float64), nil
+		left, right, err := castToFloats(left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left - right, nil
 	case tokens.SLASH:
-		return left.(float64) / right.(float64), nil
+		left, right, err := castToFloats(left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left / right, nil
 	case tokens.STAR:
-		return left.(float64) * right.(float64), nil
+		left, right, err := castToFloats(left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left * right, nil
 	case tokens.PLUS:
-
 		numLeft, numRight, err := castToFloats(left, right)
 		if err == nil {
 			return numLeft + numRight, nil
@@ -133,33 +148,35 @@ func (i *interpreter) VisitBinary(exp expressions.Binary) (interface{}, error) {
 		if lok && rok {
 			return strLeft + strRight, nil
 		}
-		break
+		// TODO: maybe define the types in msg?
+		return nil, errors.New("operands must be two numbers or two strings")
+
 	case tokens.GREATER:
 		numLeft, numRight, err := castToFloats(left, right)
 		if err != nil {
-			break
+			return nil, err
 		}
 		return numLeft > numRight, nil
 	case tokens.GREATER_EQUAL:
 		numLeft, numRight, err := castToFloats(left, right)
 		if err != nil {
-			break
+			return nil, err
 		}
 		return numLeft >= numRight, nil
 	case tokens.LESS:
 		numLeft, numRight, err := castToFloats(left, right)
 		if err != nil {
-			break
+			return nil, err
 		}
 		return numLeft < numRight, nil
 	case tokens.LESS_EQUAL:
 		numLeft, numRight, err := castToFloats(left, right)
 		if err != nil {
-			break
+			return nil, err
 		}
 		return numLeft <= numRight, nil
 	case tokens.BANG_EQUAL:
-		return isEqual(left, right), nil
+		return !isEqual(left, right), nil
 	case tokens.EQUAL_EQUAL:
 		return isEqual(left, right), nil
 	}

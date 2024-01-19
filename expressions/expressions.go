@@ -25,7 +25,7 @@ func (e Grouping) Accept(v Visitor) (interface{}, error) {
 }
 
 type Literal struct {
-	Value interface{} // TODO: not sure about this yet
+	Value interface{}
 }
 
 func (e Literal) Accept(v Visitor) (interface{}, error) {

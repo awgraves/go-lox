@@ -66,12 +66,26 @@ func run(input string) {
 		return
 	}
 
-	fmt.Print("Parsed exp: ")
+	fmt.Print(BLUE)
+	fmt.Print("Exp: ")
+	fmt.Print(RESET_COLOR)
 	astPrinter := expressions.AstPrinter{}
 	expStr, _ := astPrinter.Print(expression)
 	fmt.Println(expStr)
 
-	interpreter := newIntepreter()
-	interpreter.interpret(expression)
+	interpreter := newIntepreter(errReporter)
+	outStr := interpreter.interpret(expression)
 
+	if errReporter.HasError() {
+		printError("Runtime Error:")
+		errReporter.Report()
+	} else {
+
+		fmt.Print(BLUE)
+		fmt.Print("Out: ")
+		fmt.Print(RESET_COLOR)
+		fmt.Println(outStr)
+	}
+
+	fmt.Println()
 }

@@ -38,6 +38,8 @@ func (a *AstPrinter) VisitLiteral(expr Literal) (interface{}, error) {
 		return expr.Value, nil
 	case int, float64:
 		return fmt.Sprintf("%v", expr.Value), nil
+	case bool:
+		return fmt.Sprintf("%v", expr.Value), nil
 	default:
 		panic("Unknown literal")
 	}
