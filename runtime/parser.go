@@ -135,7 +135,7 @@ func (p *parser) primary() expressions.Expression {
 	}
 
 	if p.match(tokens.NUMBER, tokens.STRING) {
-		return expressions.Literal{Value: p.previous().Lexeme}
+		return expressions.Literal{Value: p.previous().Literal}
 	}
 
 	if p.match(tokens.LEFT_PAREN) {

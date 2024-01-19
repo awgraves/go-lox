@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/awgraves/go-lox/tokens"
 )
@@ -31,69 +32,69 @@ func (s *Scanner) ScanTokens() {
 		s.start = s.current
 		s.scanToken()
 	}
-	s.Tokens = append(s.Tokens, tokens.NewToken(tokens.EOF, "", s.line))
+	s.Tokens = append(s.Tokens, tokens.NewToken(tokens.EOF, "", nil, s.line))
 }
 
 func (s *Scanner) scanToken() {
 	c := s.advance()
 	switch c {
 	case '(':
-		s.addToken(tokens.LEFT_PAREN)
+		s.addToken(tokens.LEFT_PAREN, nil)
 		break
 	case ')':
-		s.addToken(tokens.RIGHT_PAREN)
+		s.addToken(tokens.RIGHT_PAREN, nil)
 		break
 	case '{':
-		s.addToken(tokens.LEFT_BRACE)
+		s.addToken(tokens.LEFT_BRACE, nil)
 		break
 	case '}':
-		s.addToken(tokens.RIGHT_BRACE)
+		s.addToken(tokens.RIGHT_BRACE, nil)
 		break
 	case ',':
-		s.addToken(tokens.COMMA)
+		s.addToken(tokens.COMMA, nil)
 		break
 	case '.':
-		s.addToken(tokens.DOT)
+		s.addToken(tokens.DOT, nil)
 		break
 	case '-':
-		s.addToken(tokens.MINUS)
+		s.addToken(tokens.MINUS, nil)
 		break
 	case '+':
-		s.addToken(tokens.PLUS)
+		s.addToken(tokens.PLUS, nil)
 		break
 	case ';':
-		s.addToken(tokens.SEMICOLON)
+		s.addToken(tokens.SEMICOLON, nil)
 		break
 	case '*':
-		s.addToken(tokens.STAR)
+		s.addToken(tokens.STAR, nil)
 		break
 	case '!':
 		if s.match('=') {
-			s.addToken(tokens.BANG_EQUAL)
+			s.addToken(tokens.BANG_EQUAL, nil)
 			break
 		}
-		s.addToken(tokens.BANG)
+		s.addToken(tokens.BANG, nil)
 		break
 	case '=':
 		if s.match('=') {
-			s.addToken(tokens.EQUAL_EQUAL)
+			s.addToken(tokens.EQUAL_EQUAL, nil)
 			break
 		}
-		s.addToken(tokens.EQUAL)
+		s.addToken(tokens.EQUAL, nil)
 		break
 	case '<':
 		if s.match('=') {
-			s.addToken(tokens.LESS_EQUAL)
+			s.addToken(tokens.LESS_EQUAL, nil)
 			break
 		}
-		s.addToken(tokens.LESS)
+		s.addToken(tokens.LESS, nil)
 		break
 	case '>':
 		if s.match('=') {
-			s.addToken(tokens.GREATER_EQUAL)
+			s.addToken(tokens.GREATER_EQUAL, nil)
 			break
 		}
-		s.addToken(tokens.GREATER)
+		s.addToken(tokens.GREATER, nil)
 		break
 	case '/':
 		if s.match('/') {
@@ -109,7 +110,7 @@ func (s *Scanner) scanToken() {
 			s.handleMultiLineComment()
 			break
 		}
-		s.addToken(tokens.SLASH)
+		s.addToken(tokens.SLASH, nil)
 		break
 	case ' ':
 		break
@@ -178,11 +179,11 @@ func (s *Scanner) handleIdentifier() {
 
 	tt, ok := tokens.KeywordsMap[text]
 	if ok {
-		s.addToken(tt)
+		s.addToken(tt, nil)
 		return
 	}
 
-	s.addToken(tokens.IDENTIFIER)
+	s.addToken(tokens.IDENTIFIER, nil)
 }
 
 func (s *Scanner) isAlpha(c rune) bool {
@@ -211,7 +212,13 @@ func (s *Scanner) handleNum() {
 		}
 	}
 
-	s.addToken(tokens.NUMBER)
+	num, err := strconv.ParseFloat(string(s.source[s.start:s.current]), 32)
+	// TODO: come back to this
+	if err != nil {
+		panic("unable to parse what should be a number")
+	}
+
+	s.addToken(tokens.NUMBER, num)
 }
 
 func (s *Scanner) handleString() {
@@ -238,7 +245,7 @@ func (s *Scanner) handleString() {
 
 	// trim surrounding quotes
 	val := string(s.source[s.start+1 : s.current-1])
-	s.addTokenWithVal(tokens.STRING, val)
+	s.addToken(tokens.STRING, val)
 }
 
 func (s *Scanner) isAtEnd() bool {
@@ -274,11 +281,7 @@ func (s *Scanner) advance() rune {
 	return c
 }
 
-func (s *Scanner) addTokenWithVal(tt tokens.TokenType, val string) {
-	s.Tokens = append(s.Tokens, tokens.NewToken(tt, val, s.line))
-}
-
-func (s *Scanner) addToken(tt tokens.TokenType) {
+func (s *Scanner) addToken(tt tokens.TokenType, literal interface{}) {
 	str := string(s.source[s.start:s.current])
-	s.Tokens = append(s.Tokens, tokens.NewToken(tt, str, s.line))
+	s.Tokens = append(s.Tokens, tokens.NewToken(tt, str, literal, s.line))
 }

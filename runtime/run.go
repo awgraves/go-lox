@@ -66,6 +66,12 @@ func run(input string) {
 		return
 	}
 
+	fmt.Print("Parsed exp: ")
 	astPrinter := expressions.AstPrinter{}
-	fmt.Println(astPrinter.Print(expression))
+	expStr, _ := astPrinter.Print(expression)
+	fmt.Println(expStr)
+
+	interpreter := newIntepreter()
+	interpreter.interpret(expression)
+
 }

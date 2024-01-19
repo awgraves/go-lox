@@ -3,7 +3,7 @@ package expressions
 import "github.com/awgraves/go-lox/tokens"
 
 type Expression interface {
-	accept(v Visitor) interface{}
+	Accept(v Visitor) (interface{}, error)
 }
 
 type Binary struct {
@@ -12,24 +12,24 @@ type Binary struct {
 	Right    Expression
 }
 
-func (e Binary) accept(v Visitor) interface{} {
-	return v.visitBinary(e)
+func (e Binary) Accept(v Visitor) (interface{}, error) {
+	return v.VisitBinary(e)
 }
 
 type Grouping struct {
 	Expression Expression
 }
 
-func (e Grouping) accept(v Visitor) interface{} {
-	return v.visitGrouping(e)
+func (e Grouping) Accept(v Visitor) (interface{}, error) {
+	return v.VisitGrouping(e)
 }
 
 type Literal struct {
 	Value interface{} // TODO: not sure about this yet
 }
 
-func (e Literal) accept(v Visitor) interface{} {
-	return v.visitLiteral(e)
+func (e Literal) Accept(v Visitor) (interface{}, error) {
+	return v.VisitLiteral(e)
 }
 
 type Unary struct {
@@ -37,6 +37,6 @@ type Unary struct {
 	Right    Expression
 }
 
-func (e Unary) accept(v Visitor) interface{} {
-	return v.visitUnary(e)
+func (e Unary) Accept(v Visitor) (interface{}, error) {
+	return v.VisitUnary(e)
 }
