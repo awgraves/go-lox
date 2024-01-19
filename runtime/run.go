@@ -53,6 +53,7 @@ func run(input string) {
 	if errReporter.HasError() {
 		printError("Errors found - runtime would not attempt to execute this code.")
 		errReporter.Report()
+		fmt.Println()
 		return
 	}
 
@@ -63,6 +64,7 @@ func run(input string) {
 	if errReporter.HasError() {
 		printError("Errors found - runtime would not attempt to execute this code.")
 		errReporter.Report()
+		fmt.Println()
 		return
 	}
 
