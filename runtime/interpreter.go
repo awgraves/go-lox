@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/awgraves/go-lox/expressions"
+	"github.com/awgraves/go-lox/statements"
 	"github.com/awgraves/go-lox/tokens"
 )
 
@@ -19,15 +20,19 @@ func newIntepreter(errReporter ErrorReporter) *interpreter {
 	}
 }
 
-func (i *interpreter) interpret(exp expressions.Expression) string {
-	val, err := i.evaluate(exp)
-	if err != nil {
-		// TODO: make this accurate
-		i.errReporter.AddError(0, 0, err.Error())
-		return ""
+func (i *interpreter) interpret(statements []statements.Stmt) {
+	for _, s := range statements {
+		err := i.execute(s)
+		if err != nil {
+			//TODO: make this accurate
+			i.errReporter.AddError(0, 0, err.Error())
+			return
+		}
 	}
+}
 
-	return stringify(val)
+func (i *interpreter) execute(stmt statements.Stmt) error {
+	return stmt.Accept(i)
 }
 
 func stringify(v interface{}) string {
@@ -40,6 +45,20 @@ func stringify(v interface{}) string {
 		return strings.TrimRight(fmt.Sprintf("%v", num), ".0")
 	}
 	return fmt.Sprintf("%v", v)
+}
+
+func (i *interpreter) VisitExpressionStmt(stmt statements.ExpStmt) error {
+	_, err := i.evaluate(stmt.Expression)
+	return err
+}
+
+func (i *interpreter) VisitPrintStmt(stmt statements.PrintStmt) error {
+	value, err := i.evaluate(stmt.Expression)
+	if err != nil {
+		return err
+	}
+	fmt.Println(stringify(value))
+	return nil
 }
 
 func (i *interpreter) VisitLiteral(exp expressions.Literal) (interface{}, error) {

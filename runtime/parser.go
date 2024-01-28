@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/awgraves/go-lox/expressions"
+	"github.com/awgraves/go-lox/statements"
 	"github.com/awgraves/go-lox/tokens"
 )
 
@@ -20,10 +21,36 @@ func newParser(source []*tokens.Token, errReporter ErrorReporter) *parser {
 	}
 }
 
-// parse will attempt to parse the tokens.
-// it is the caller's responsibility to check the err reporter as to whether this expression tree is usable
-func (p *parser) parse() expressions.Expression {
-	return p.expression()
+// parse will attempt to parse the tokens into statements.
+// it is the caller's responsibility to check the err reporter as to whether this list of statements is usable.
+func (p *parser) parse() []statements.Stmt {
+	statements := []statements.Stmt{}
+
+	for !p.isAtEnd() {
+		statements = append(statements, p.statement())
+	}
+	return statements
+}
+
+func (p *parser) statement() statements.Stmt {
+	if p.match(tokens.PRINT) {
+		return p.printStatement()
+	}
+
+	return p.expressionStatement()
+}
+
+func (p *parser) printStatement() statements.Stmt {
+
+	value := p.expression()
+	p.consume(tokens.SEMICOLON, "Expect ';' after value.")
+	return statements.PrintStmt{Expression: value}
+}
+
+func (p *parser) expressionStatement() statements.Stmt {
+	expr := p.expression()
+	p.consume(tokens.SEMICOLON, "Expect ';' after expression.")
+	return statements.ExpStmt{Expression: expr}
 }
 
 func (p *parser) peek() tokens.Token {
