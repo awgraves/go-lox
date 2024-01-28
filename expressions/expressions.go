@@ -40,3 +40,20 @@ type Unary struct {
 func (e Unary) Accept(v Visitor) (interface{}, error) {
 	return v.VisitUnary(e)
 }
+
+type Variable struct {
+	Name tokens.Token
+}
+
+func (e Variable) Accept(v Visitor) (interface{}, error) {
+	return v.VisitVariable(e)
+}
+
+type Assign struct {
+	Name  tokens.Token
+	Value Expression
+}
+
+func (e Assign) Accept(v Visitor) (interface{}, error) {
+	return v.VisitAssign(e)
+}

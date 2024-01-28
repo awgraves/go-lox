@@ -12,11 +12,13 @@ import (
 
 type interpreter struct {
 	errReporter ErrorReporter
+	environment Environment
 }
 
 func newIntepreter(errReporter ErrorReporter) *interpreter {
 	return &interpreter{
 		errReporter: errReporter,
+		environment: newEnvironment(nil),
 	}
 }
 
@@ -45,6 +47,49 @@ func stringify(v interface{}) string {
 		return strings.TrimRight(fmt.Sprintf("%v", num), ".0")
 	}
 	return fmt.Sprintf("%v", v)
+}
+
+func (i *interpreter) VisitVarStmt(stmt statements.VarStmt) error {
+	if stmt.Initializer != nil {
+		value, err := i.evaluate(stmt.Initializer)
+		if err != nil {
+			return err
+		}
+		i.environment.define(stmt.Name, value)
+		return nil
+	}
+	i.environment.define(stmt.Name, nil)
+	return nil
+}
+
+func (i *interpreter) VisitAssign(expr expressions.Assign) (interface{}, error) {
+	value, err := i.evaluate(expr)
+	if err != nil {
+		return nil, err
+	}
+	i.environment.assign(expr.Name, value)
+	return value, nil
+}
+
+func (i *interpreter) VisitVariable(expr expressions.Variable) (interface{}, error) {
+	return i.environment.get(expr.Name)
+}
+
+func (i *interpreter) VisitBlock(stmt statements.Block) error {
+	return i.executeBlock(stmt.Statements, newEnvironment(i.environment))
+}
+
+func (i *interpreter) executeBlock(statements []statements.Stmt, environment Environment) error {
+	previous := i.environment
+	i.environment = environment
+	for _, statement := range statements {
+		err := i.execute(statement)
+		if err != nil {
+			return err
+		}
+	}
+	i.environment = previous
+	return nil
 }
 
 func (i *interpreter) VisitExpressionStmt(stmt statements.ExpStmt) error {

@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/awgraves/go-lox/expressions"
@@ -27,17 +28,59 @@ func (p *parser) parse() []statements.Stmt {
 	statements := []statements.Stmt{}
 
 	for !p.isAtEnd() {
-		statements = append(statements, p.statement())
+		statements = append(statements, p.declaration())
 	}
 	return statements
+}
+
+func (p *parser) declaration() statements.Stmt {
+	if p.match(tokens.VAR) {
+		return p.varDeclaration()
+	}
+
+	return p.statement()
+}
+
+func (p *parser) varDeclaration() statements.Stmt {
+	err := p.consume(tokens.IDENTIFIER, "Expect variable name.")
+	if err != nil {
+		// TODO: better handle
+		panic(err)
+	}
+
+	name := p.previous()
+
+	var initializer expressions.Expression = nil
+
+	if p.match(tokens.EQUAL) {
+		initializer = p.expression()
+	}
+
+	p.consume(tokens.SEMICOLON, "Expect ';' after variable declaration.")
+
+	return statements.VarStmt{Name: name, Initializer: initializer}
 }
 
 func (p *parser) statement() statements.Stmt {
 	if p.match(tokens.PRINT) {
 		return p.printStatement()
 	}
+	if p.match(tokens.LEFT_BRACE) {
+		return statements.Block{Statements: p.block()}
+	}
 
 	return p.expressionStatement()
+}
+
+func (p *parser) block() []statements.Stmt {
+	statements := []statements.Stmt{}
+
+	for !p.check(tokens.RIGHT_BRACE) && !p.isAtEnd() {
+		statements = append(statements, p.declaration())
+	}
+
+	p.consume(tokens.RIGHT_BRACE, "Expect '}' after block.")
+	return statements
 }
 
 func (p *parser) printStatement() statements.Stmt {
@@ -51,6 +94,24 @@ func (p *parser) expressionStatement() statements.Stmt {
 	expr := p.expression()
 	p.consume(tokens.SEMICOLON, "Expect ';' after expression.")
 	return statements.ExpStmt{Expression: expr}
+}
+
+func (p *parser) assignment() expressions.Expression {
+	expr := p.equality()
+
+	if p.match(tokens.EQUAL) {
+		equals := p.previous()
+		value := p.assignment()
+
+		if exp, ok := expr.(expressions.Variable); ok {
+			name := exp.Name
+			return expressions.Assign{Name: name, Value: value}
+		}
+		// TODO: make more accurate
+		p.errReporter.AddError(0, 0, fmt.Sprintf("Invalid assignment target: %v", equals))
+	}
+
+	return expr
 }
 
 func (p *parser) peek() tokens.Token {
@@ -165,6 +226,10 @@ func (p *parser) primary() expressions.Expression {
 		return expressions.Literal{Value: p.previous().Literal}
 	}
 
+	if p.match(tokens.IDENTIFIER) {
+		return expressions.Variable{Name: p.previous()}
+	}
+
 	if p.match(tokens.LEFT_PAREN) {
 		expr := p.expression()
 		p.consume(tokens.RIGHT_PAREN, "Expect ')' after expression.")
@@ -181,10 +246,10 @@ func (p *parser) primary() expressions.Expression {
 	return nil
 }
 
-func (p *parser) consume(t tokens.TokenType, message string) {
+func (p *parser) consume(t tokens.TokenType, message string) error {
 	if p.check(t) {
 		p.advance()
-		return
+		return nil
 	}
 
 	// err handling begins
@@ -194,6 +259,7 @@ func (p *parser) consume(t tokens.TokenType, message string) {
 	p.errReporter.AddError(curr.LineNum, 0, message)
 
 	p.synchronize()
+	return errors.New(message)
 }
 
 // synchronize moves the parser along to the next statement after an error was found
