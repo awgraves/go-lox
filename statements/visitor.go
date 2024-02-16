@@ -5,4 +5,5 @@ type Visitor interface {
 	VisitPrintStmt(PrintStmt) error
 	VisitVarStmt(VarStmt) error
 	VisitBlock(Block) error
+	VisitIfStmt(IfStmt) error
 }

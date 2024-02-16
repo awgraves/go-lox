@@ -62,6 +62,9 @@ func (p *parser) varDeclaration() statements.Stmt {
 }
 
 func (p *parser) statement() statements.Stmt {
+	if p.match(tokens.IF) {
+		return p.ifStatement()
+	}
 	if p.match(tokens.PRINT) {
 		return p.printStatement()
 	}
@@ -70,6 +73,20 @@ func (p *parser) statement() statements.Stmt {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *parser) ifStatement() statements.Stmt {
+	p.consume(tokens.LEFT_PAREN, "Expect '(' after 'if'.")
+	condition := p.expression()
+	p.consume(tokens.RIGHT_PAREN, "Expect ')' after if condition.")
+
+	thenBranch := p.statement()
+	var elseBranch statements.Stmt = nil
+	if p.match(tokens.ELSE) {
+		elseBranch = p.statement()
+	}
+
+	return statements.IfStmt{Condition: condition, ThenBranch: thenBranch, ElseBranch: elseBranch}
 }
 
 func (p *parser) block() []statements.Stmt {
@@ -97,7 +114,7 @@ func (p *parser) expressionStatement() statements.Stmt {
 }
 
 func (p *parser) assignment() expressions.Expression {
-	expr := p.equality()
+	expr := p.or()
 
 	if p.match(tokens.EQUAL) {
 		equals := p.previous()
@@ -109,6 +126,30 @@ func (p *parser) assignment() expressions.Expression {
 		}
 		// TODO: make more accurate
 		p.errReporter.AddError(0, 0, fmt.Sprintf("Invalid assignment target: %v", equals))
+	}
+
+	return expr
+}
+
+func (p *parser) or() expressions.Expression {
+	expr := p.and()
+
+	for p.match(tokens.OR) {
+		operator := p.previous()
+		right := p.and()
+		expr = expressions.Logical{Left: expr, Operator: operator, Right: right}
+	}
+
+	return expr
+}
+
+func (p *parser) and() expressions.Expression {
+	expr := p.equality()
+
+	for p.match(tokens.AND) {
+		operator := p.previous()
+		right := p.equality()
+		expr = expressions.Logical{Left: expr, Operator: operator, Right: right}
 	}
 
 	return expr
@@ -151,7 +192,7 @@ func (p *parser) check(t tokens.TokenType) bool {
 }
 
 func (p *parser) expression() expressions.Expression {
-	return p.equality()
+	return p.assignment()
 }
 
 func (p *parser) equality() expressions.Expression {

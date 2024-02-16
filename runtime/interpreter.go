@@ -97,6 +97,19 @@ func (i *interpreter) VisitExpressionStmt(stmt statements.ExpStmt) error {
 	return err
 }
 
+func (i *interpreter) VisitIfStmt(stmt statements.IfStmt) error {
+	res, err := i.evaluate(stmt.Condition)
+	if err != nil {
+		return err
+	}
+	if i.isTruthy(res) {
+		err = i.execute(stmt.ThenBranch)
+	} else if stmt.ElseBranch != nil {
+		err = i.execute(stmt.ElseBranch)
+	}
+	return err
+}
+
 func (i *interpreter) VisitPrintStmt(stmt statements.PrintStmt) error {
 	value, err := i.evaluate(stmt.Expression)
 	if err != nil {
@@ -108,6 +121,25 @@ func (i *interpreter) VisitPrintStmt(stmt statements.PrintStmt) error {
 
 func (i *interpreter) VisitLiteral(exp expressions.Literal) (interface{}, error) {
 	return exp.Value, nil
+}
+
+func (i *interpreter) VisitLogical(exp expressions.Logical) (interface{}, error) {
+	left, err := i.evaluate(exp.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	if exp.Operator.TokenType == tokens.OR {
+		if i.isTruthy(left) {
+			return left, nil
+		}
+	} else {
+		if !i.isTruthy(left) {
+			return left, nil
+		}
+	}
+
+	return i.evaluate(exp.Right)
 }
 
 func (i *interpreter) VisitGrouping(exp expressions.Grouping) (interface{}, error) {

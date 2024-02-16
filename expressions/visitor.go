@@ -7,4 +7,5 @@ type Visitor interface {
 	VisitUnary(Unary) (interface{}, error)
 	VisitVariable(Variable) (interface{}, error)
 	VisitAssign(Assign) (interface{}, error)
+	VisitLogical(Logical) (interface{}, error)
 }

@@ -41,3 +41,13 @@ type Block struct {
 func (s Block) Accept(v Visitor) error {
 	return v.VisitBlock(s)
 }
+
+type IfStmt struct {
+	Condition  expressions.Expression
+	ThenBranch Stmt
+	ElseBranch Stmt // possibly nil
+}
+
+func (s IfStmt) Accept(v Visitor) error {
+	return v.VisitIfStmt(s)
+}
