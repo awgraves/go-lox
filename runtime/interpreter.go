@@ -3,7 +3,6 @@ package runtime
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/awgraves/go-lox/expressions"
 	"github.com/awgraves/go-lox/statements"
@@ -44,7 +43,7 @@ func stringify(v interface{}) string {
 
 	num, ok := v.(float64)
 	if ok {
-		return strings.TrimRight(fmt.Sprintf("%v", num), ".0")
+		return fmt.Sprintf("%v", num)
 	}
 	return fmt.Sprintf("%v", v)
 }
@@ -62,8 +61,26 @@ func (i *interpreter) VisitVarStmt(stmt statements.VarStmt) error {
 	return nil
 }
 
+func (i *interpreter) VisitWhileStmt(stmt statements.WhileStmt) error {
+	res, err := i.evaluate(stmt.Condition)
+	if err != nil {
+		return err
+	}
+	for i.isTruthy(res) {
+		err = i.execute(stmt.Body)
+		if err != nil {
+			return err
+		}
+		res, err = i.evaluate(stmt.Condition)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (i *interpreter) VisitAssign(expr expressions.Assign) (interface{}, error) {
-	value, err := i.evaluate(expr)
+	value, err := i.evaluate(expr.Value)
 	if err != nil {
 		return nil, err
 	}

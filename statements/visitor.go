@@ -6,4 +6,5 @@ type Visitor interface {
 	VisitVarStmt(VarStmt) error
 	VisitBlock(Block) error
 	VisitIfStmt(IfStmt) error
+	VisitWhileStmt(WhileStmt) error
 }

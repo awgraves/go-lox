@@ -51,3 +51,12 @@ type IfStmt struct {
 func (s IfStmt) Accept(v Visitor) error {
 	return v.VisitIfStmt(s)
 }
+
+type WhileStmt struct {
+	Condition expressions.Expression
+	Body      Stmt
+}
+
+func (s WhileStmt) Accept(v Visitor) error {
+	return v.VisitWhileStmt(s)
+}

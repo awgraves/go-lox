@@ -1,0 +1,9 @@
+var a = 0;
+
+if (a == 1) {
+ print "doot";
+} else if (a == 4) {
+  print "yes";
+} else {
+  print "no";
+}

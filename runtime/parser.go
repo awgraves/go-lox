@@ -61,18 +61,77 @@ func (p *parser) varDeclaration() statements.Stmt {
 	return statements.VarStmt{Name: name, Initializer: initializer}
 }
 
+func (p *parser) whileStatement() statements.Stmt {
+	p.consume(tokens.LEFT_PAREN, "Expect '(' after 'while'.")
+	condition := p.expression()
+	p.consume(tokens.RIGHT_PAREN, "Expect ')' after condition.")
+	body := p.statement()
+
+	return statements.WhileStmt{Condition: condition, Body: body}
+}
+
 func (p *parser) statement() statements.Stmt {
+	if p.match(tokens.FOR) {
+		return p.forStatement()
+	}
 	if p.match(tokens.IF) {
 		return p.ifStatement()
 	}
 	if p.match(tokens.PRINT) {
 		return p.printStatement()
 	}
+	if p.match(tokens.WHILE) {
+		return p.whileStatement()
+	}
 	if p.match(tokens.LEFT_BRACE) {
 		return statements.Block{Statements: p.block()}
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *parser) forStatement() statements.Stmt {
+	p.consume(tokens.LEFT_PAREN, "Expect '(' after 'for'.")
+
+	var initializer statements.Stmt
+	if p.match(tokens.SEMICOLON) {
+		initializer = nil
+	} else if p.match(tokens.VAR) {
+		initializer = p.varDeclaration()
+	} else {
+		initializer = p.expressionStatement()
+	}
+
+	var condition expressions.Expression = nil
+	if !p.check(tokens.SEMICOLON) {
+		condition = p.expression()
+	}
+	p.consume(tokens.SEMICOLON, "Expect ';' after loop condition")
+
+	var increment expressions.Expression = nil
+	if !p.check(tokens.RIGHT_PAREN) {
+		increment = p.expression()
+	}
+	p.consume(tokens.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+	body := p.statement()
+
+	if increment != nil {
+		body = statements.Block{
+			Statements: []statements.Stmt{body, statements.ExpStmt{Expression: increment}},
+		}
+	}
+
+	if condition == nil {
+		condition = expressions.Literal{Value: true}
+	}
+	body = statements.WhileStmt{Condition: condition, Body: body}
+
+	if initializer != nil {
+		body = statements.Block{Statements: []statements.Stmt{initializer, body}}
+	}
+
+	return body
 }
 
 func (p *parser) ifStatement() statements.Stmt {
