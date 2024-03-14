@@ -15,9 +15,12 @@ type interpreter struct {
 }
 
 func newIntepreter(errReporter ErrorReporter) *interpreter {
+	globals := newEnvironment(nil)
+	globals.define(tokens.Token{Lexeme: "clock"}, Clock{})
+
 	return &interpreter{
 		errReporter: errReporter,
-		environment: newEnvironment(nil),
+		environment: globals,
 	}
 }
 
@@ -294,6 +297,35 @@ func (i *interpreter) VisitBinary(exp expressions.Binary) (interface{}, error) {
 		return isEqual(left, right), nil
 	}
 	return nil, errors.New("TODO")
+}
+
+func (i *interpreter) VisitCall(expr expressions.Call) (interface{}, error) {
+	callee, err := i.evaluate(expr.Callee)
+	if err != nil {
+		return nil, err
+	}
+
+	arguments := []interface{}{}
+	for _, arg := range expr.Arguments {
+		eval, err := i.evaluate(arg)
+		if err != nil {
+			return nil, err
+		}
+		arguments = append(arguments, eval)
+	}
+
+	function, ok := callee.(LoxCallable)
+	if !ok {
+		return nil, errors.New("Can only call functions and classes.")
+	}
+
+	arity := function.Arity()
+	got := len(arguments)
+	if got != arity {
+		return nil, fmt.Errorf("Expected %d arguments but got %d", arity, got)
+	}
+
+	return function.Call(i, arguments)
 }
 
 func isEqual(a, b interface{}) bool {

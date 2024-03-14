@@ -67,3 +67,13 @@ type Logical struct {
 func (e Logical) Accept(v Visitor) (interface{}, error) {
 	return v.VisitLogical(e)
 }
+
+type Call struct {
+	Callee    Expression
+	Paren     tokens.Token
+	Arguments []Expression
+}
+
+func (e Call) Accept(v Visitor) (interface{}, error) {
+	return v.VisitCall(e)
+}

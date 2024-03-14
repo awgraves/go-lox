@@ -8,4 +8,5 @@ type Visitor interface {
 	VisitVariable(Variable) (interface{}, error)
 	VisitAssign(Assign) (interface{}, error)
 	VisitLogical(Logical) (interface{}, error)
+	VisitCall(Call) (interface{}, error)
 }

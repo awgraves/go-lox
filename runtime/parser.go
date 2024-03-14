@@ -42,7 +42,7 @@ func (p *parser) declaration() statements.Stmt {
 }
 
 func (p *parser) varDeclaration() statements.Stmt {
-	err := p.consume(tokens.IDENTIFIER, "Expect variable name.")
+	_, err := p.consume(tokens.IDENTIFIER, "Expect variable name.")
 	if err != nil {
 		// TODO: better handle
 		panic(err)
@@ -308,7 +308,39 @@ func (p *parser) unary() expressions.Expression {
 		right := p.unary()
 		return expressions.Unary{Operator: operator, Right: right}
 	}
-	return p.primary()
+	return p.call()
+}
+
+func (p *parser) call() expressions.Expression {
+	expr := p.primary()
+
+	for {
+		if p.match(tokens.LEFT_PAREN) {
+			expr = p.finishCall(expr)
+		} else {
+			break
+		}
+	}
+
+	return expr
+}
+
+func (p *parser) finishCall(callee expressions.Expression) expressions.Expression {
+	args := []expressions.Expression{}
+	if !p.check(tokens.RIGHT_PAREN) {
+		for ok := true; ok; ok = p.match(tokens.COMMA) {
+			if len(args) >= 255 {
+				curr := p.peek()
+				p.errReporter.AddError(curr.LineNum, 0, "Can't have more than 255 arguments.")
+				break
+			}
+			args = append(args, p.expression())
+		}
+	}
+
+	paren, _ := p.consume(tokens.RIGHT_PAREN, "Expect ')' after arguments.")
+
+	return expressions.Call{Callee: callee, Paren: paren, Arguments: args}
 }
 
 func (p *parser) primary() expressions.Expression {
@@ -346,10 +378,10 @@ func (p *parser) primary() expressions.Expression {
 	return nil
 }
 
-func (p *parser) consume(t tokens.TokenType, message string) error {
+func (p *parser) consume(t tokens.TokenType, message string) (tokens.Token, error) {
 	if p.check(t) {
-		p.advance()
-		return nil
+		t := p.advance()
+		return t, nil
 	}
 
 	// err handling begins
@@ -359,7 +391,7 @@ func (p *parser) consume(t tokens.TokenType, message string) error {
 	p.errReporter.AddError(curr.LineNum, 0, message)
 
 	p.synchronize()
-	return errors.New(message)
+	return tokens.Token{}, errors.New(message)
 }
 
 // synchronize moves the parser along to the next statement after an error was found
