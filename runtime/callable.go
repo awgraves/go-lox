@@ -28,6 +28,7 @@ func (c Clock) String() string {
 }
 
 type LoxFunction struct {
+	Closure     Environment
 	Declaration statements.FunctionStmt
 }
 
@@ -36,7 +37,7 @@ func (l LoxFunction) Arity() int {
 }
 
 func (l LoxFunction) Call(interp *interpreter, args []interface{}) (interface{}, error) {
-	env := newEnvironment(interp.globals)
+	env := newEnvironment(l.Closure)
 
 	for i := 0; i < len(l.Declaration.Params); i++ {
 		env.define(l.Declaration.Params[i].Lexeme, args[i])

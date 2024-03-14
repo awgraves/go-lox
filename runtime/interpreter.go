@@ -121,7 +121,7 @@ func (i *interpreter) VisitExpressionStmt(stmt statements.ExpStmt) error {
 }
 
 func (i *interpreter) VisitFunctionStmt(stmt statements.FunctionStmt) error {
-	function := LoxFunction{Declaration: stmt}
+	function := LoxFunction{Closure: i.environment, Declaration: stmt}
 	i.environment.define(stmt.Name.Lexeme, function)
 	return nil
 }
