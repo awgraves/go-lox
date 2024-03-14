@@ -35,6 +35,15 @@ func (s PrintStmt) Accept(v Visitor) error {
 	return v.VisitPrintStmt(s)
 }
 
+type ReturnStmt struct {
+	Keyword tokens.Token
+	Value   expressions.Expression // might be nil!
+}
+
+func (s ReturnStmt) Accept(v Visitor) error {
+	return v.VisitReturnStmt(s)
+}
+
 type VarStmt struct {
 	Name        tokens.Token
 	Initializer expressions.Expression

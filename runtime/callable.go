@@ -44,6 +44,11 @@ func (l LoxFunction) Call(interp *interpreter, args []interface{}) (interface{},
 
 	err := interp.executeBlock(l.Declaration.Body, env)
 
+	val, ok := err.(*ReturnValue)
+	if ok {
+		return val.Value, nil
+	}
+
 	return nil, err
 }
 

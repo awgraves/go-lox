@@ -11,8 +11,8 @@ import (
 
 type interpreter struct {
 	errReporter ErrorReporter
-	environment Environment
 	globals     Environment
+	environment Environment
 }
 
 func newIntepreter(errReporter ErrorReporter) *interpreter {
@@ -21,8 +21,8 @@ func newIntepreter(errReporter ErrorReporter) *interpreter {
 
 	return &interpreter{
 		errReporter: errReporter,
-		environment: globals,
 		globals:     globals,
+		environment: globals,
 	}
 }
 
@@ -107,6 +107,7 @@ func (i *interpreter) executeBlock(statements []statements.Stmt, environment Env
 	for _, statement := range statements {
 		err := i.execute(statement)
 		if err != nil {
+			i.environment = previous
 			return err
 		}
 	}
@@ -145,6 +146,25 @@ func (i *interpreter) VisitPrintStmt(stmt statements.PrintStmt) error {
 	}
 	fmt.Println(stringify(value))
 	return nil
+}
+
+type ReturnValue struct {
+	Value interface{}
+}
+
+func (r *ReturnValue) Error() string {
+	return "Return Value"
+}
+
+func (i *interpreter) VisitReturnStmt(stmt statements.ReturnStmt) error {
+	if stmt.Value != nil {
+		val, err := i.evaluate(stmt.Value)
+		if err != nil {
+			return err
+		}
+		return &ReturnValue{Value: val}
+	}
+	return &ReturnValue{Value: nil}
 }
 
 func (i *interpreter) VisitLiteral(exp expressions.Literal) (interface{}, error) {

@@ -36,7 +36,7 @@ func (e *environment) get(name tokens.Token) (interface{}, error) {
 		if e.enclosing != nil {
 			return e.enclosing.get(name)
 		}
-		err := errors.New(fmt.Sprintf("Undefined variable '%s'.", name))
+		err := errors.New(fmt.Sprintf("Undefined variable '%s' when getting.", name))
 		return nil, err
 	}
 	return val, nil
@@ -48,7 +48,7 @@ func (e *environment) assign(name tokens.Token, value interface{}) error {
 		if e.enclosing != nil {
 			e.enclosing.assign(name, value)
 		}
-		err := errors.New(fmt.Sprintf("Undefined variable '%s'.", name))
+		err := errors.New(fmt.Sprintf("Undefined variable '%s' when assigning.", name))
 		return err
 	}
 
