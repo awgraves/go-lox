@@ -8,7 +8,7 @@ import (
 )
 
 type Environment interface {
-	define(name tokens.Token, value interface{})
+	define(name string, value interface{})
 	get(name tokens.Token) (interface{}, error)
 	assign(name tokens.Token, value interface{}) error
 }
@@ -26,8 +26,8 @@ func newEnvironment(enclosing Environment) *environment {
 	}
 }
 
-func (e *environment) define(name tokens.Token, value interface{}) {
-	e.values[name.Lexeme] = value
+func (e *environment) define(name string, value interface{}) {
+	e.values[name] = value
 }
 
 func (e *environment) get(name tokens.Token) (interface{}, error) {

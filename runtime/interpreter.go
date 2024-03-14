@@ -12,15 +12,17 @@ import (
 type interpreter struct {
 	errReporter ErrorReporter
 	environment Environment
+	globals     Environment
 }
 
 func newIntepreter(errReporter ErrorReporter) *interpreter {
 	globals := newEnvironment(nil)
-	globals.define(tokens.Token{Lexeme: "clock"}, Clock{})
+	globals.define("clock", Clock{})
 
 	return &interpreter{
 		errReporter: errReporter,
 		environment: globals,
+		globals:     globals,
 	}
 }
 
@@ -57,10 +59,10 @@ func (i *interpreter) VisitVarStmt(stmt statements.VarStmt) error {
 		if err != nil {
 			return err
 		}
-		i.environment.define(stmt.Name, value)
+		i.environment.define(stmt.Name.Lexeme, value)
 		return nil
 	}
-	i.environment.define(stmt.Name, nil)
+	i.environment.define(stmt.Name.Lexeme, nil)
 	return nil
 }
 
@@ -115,6 +117,12 @@ func (i *interpreter) executeBlock(statements []statements.Stmt, environment Env
 func (i *interpreter) VisitExpressionStmt(stmt statements.ExpStmt) error {
 	_, err := i.evaluate(stmt.Expression)
 	return err
+}
+
+func (i *interpreter) VisitFunctionStmt(stmt statements.FunctionStmt) error {
+	function := LoxFunction{Declaration: stmt}
+	i.environment.define(stmt.Name.Lexeme, function)
+	return nil
 }
 
 func (i *interpreter) VisitIfStmt(stmt statements.IfStmt) error {

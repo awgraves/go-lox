@@ -1,0 +1,6 @@
+fun sayHi(first, last) {
+	print "Hi, " + first + " " + last + "!";
+}
+
+print clock();
+sayHi("Andrew", "Graves");

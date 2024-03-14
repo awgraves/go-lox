@@ -17,6 +17,16 @@ func (s ExpStmt) Accept(v Visitor) error {
 	return v.VisitExpressionStmt(s)
 }
 
+type FunctionStmt struct {
+	Name   tokens.Token
+	Params []tokens.Token
+	Body   []Stmt
+}
+
+func (s FunctionStmt) Accept(v Visitor) error {
+	return v.VisitFunctionStmt(s)
+}
+
 type PrintStmt struct {
 	Expression expressions.Expression
 }
