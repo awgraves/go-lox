@@ -10,7 +10,10 @@ import (
 type Environment interface {
 	define(name string, value interface{})
 	get(name tokens.Token) (interface{}, error)
+	getAt(distance int, name tokens.Token) (interface{}, error)
 	assign(name tokens.Token, value interface{}) error
+	assignAt(distance int, name tokens.Token, value interface{}) error
+	getEnclosing() Environment
 }
 
 type environment struct {
@@ -24,6 +27,10 @@ func newEnvironment(enclosing Environment) *environment {
 		enclosing: enclosing,
 		values:    make(map[string]interface{}),
 	}
+}
+
+func (e *environment) getEnclosing() Environment {
+	return e.enclosing
 }
 
 func (e *environment) define(name string, value interface{}) {
@@ -42,6 +49,20 @@ func (e *environment) get(name tokens.Token) (interface{}, error) {
 	return val, nil
 }
 
+func (e *environment) getAt(distance int, name tokens.Token) (interface{}, error) {
+	env := e.ancestor(distance)
+	return env.get(name)
+}
+
+func (e *environment) ancestor(distance int) Environment {
+	var env Environment = e
+	for i := 0; i < distance; i++ {
+		env = env.getEnclosing()
+	}
+
+	return env
+}
+
 func (e *environment) assign(name tokens.Token, value interface{}) error {
 	_, ok := e.values[name.Lexeme]
 	if !ok {
@@ -54,4 +75,9 @@ func (e *environment) assign(name tokens.Token, value interface{}) error {
 
 	e.values[name.Lexeme] = value
 	return nil
+}
+
+func (e *environment) assignAt(distance int, name tokens.Token, value interface{}) error {
+	env := e.ancestor(distance)
+	return env.assign(name, value)
 }

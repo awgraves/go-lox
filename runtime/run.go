@@ -66,6 +66,18 @@ func run(input string) {
 	}
 
 	interpreter := newIntepreter(errReporter)
+
+	fmt.Println(statements)
+
+	resolver := newResolver(*interpreter)
+	resolver.resolveStmts(statements)
+	if errReporter.HasError() {
+		printError("Parse error")
+		errReporter.Report()
+		fmt.Println()
+		return
+	}
+
 	interpreter.interpret(statements)
 
 	if errReporter.HasError() {

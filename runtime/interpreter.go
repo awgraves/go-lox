@@ -13,6 +13,7 @@ type interpreter struct {
 	errReporter ErrorReporter
 	globals     Environment
 	environment Environment
+	locals      map[expressions.Expression]int
 }
 
 func newIntepreter(errReporter ErrorReporter) *interpreter {
@@ -23,6 +24,7 @@ func newIntepreter(errReporter ErrorReporter) *interpreter {
 		errReporter: errReporter,
 		globals:     globals,
 		environment: globals,
+		locals:      make(map[expressions.Expression]int),
 	}
 }
 
@@ -39,6 +41,10 @@ func (i *interpreter) interpret(statements []statements.Stmt) {
 
 func (i *interpreter) execute(stmt statements.Stmt) error {
 	return stmt.Accept(i)
+}
+
+func (i *interpreter) resolve(expr expressions.Expression, depth int) {
+	i.locals[expr] = depth
 }
 
 func stringify(v interface{}) string {
@@ -89,12 +95,27 @@ func (i *interpreter) VisitAssign(expr expressions.Assign) (interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-	i.environment.assign(expr.Name, value)
-	return value, nil
+
+	distance, ok := i.locals[expr]
+	if ok {
+		err = i.environment.assignAt(distance, expr.Name, value)
+	} else {
+		err = i.globals.assign(expr.Name, value)
+	}
+	return value, err
 }
 
 func (i *interpreter) VisitVariable(expr expressions.Variable) (interface{}, error) {
-	return i.environment.get(expr.Name)
+	return i.lookUpVariable(expr.Name, expr)
+}
+
+func (i *interpreter) lookUpVariable(name tokens.Token, expr expressions.Expression) (interface{}, error) {
+	distance, ok := i.locals[expr]
+	if ok {
+		return i.environment.getAt(distance, name)
+	} else {
+		return i.globals.get(name)
+	}
 }
 
 func (i *interpreter) VisitBlock(stmt statements.Block) error {
